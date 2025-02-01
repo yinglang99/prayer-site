@@ -1,0 +1,64 @@
+// 获取页面元素
+const prayBtn = document.getElementById('prayBtn');
+const daysSpan = document.getElementById('days');
+
+// 从本地存储读取数据
+let prayData = JSON.parse(localStorage.getItem('prayData')) || {
+  lastDate: '',
+  streak: 0
+};
+
+// 更新显示
+daysSpan.textContent = prayData.streak;
+
+// 按钮点击事件
+prayBtn.addEventListener('click', () => {
+  const today = new Date().toLocaleDateString();
+  
+  if (today !== prayData.lastDate) {
+    prayData.streak += 1;
+    prayData.lastDate = today;
+    localStorage.setItem('prayData', JSON.stringify(prayData));
+    daysSpan.textContent = prayData.streak;
+    alert('打卡成功！✨');
+  } else {
+    alert('今天已经祈祷过了哦～');
+  }
+});
+
+// 获取重置按钮元素
+const resetBtn = document.getElementById('resetBtn');
+
+// 重置按钮点击事件
+resetBtn.addEventListener('click', () => {
+  // 确认是否重置
+  if (confirm('确定要重置打卡记录吗？')) {
+    // 重置打卡数据
+    prayData = {
+      lastDate: '',
+      streak: 0
+    };
+    localStorage.setItem('prayData', JSON.stringify(prayData));
+    daysSpan.textContent = prayData.streak;
+    alert('打卡记录已重置！');
+  }
+});
+
+// 初始化粒子效果
+particlesJS('particles-js', {
+  particles: {
+    number: { value: 30 },
+    color: { value: '#ffffff' },
+    shape: {
+      type: 'image',
+      image: {
+        src: 'https://www.svgrepo.com/show/306675/sakura.svg',
+        width: 20,
+        height: 20
+      }
+    },
+    opacity: { value: 0.5 },
+    size: { value: 10 },
+    move: { speed: 1 }
+  }
+});
