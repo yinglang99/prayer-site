@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>纯光教会每日祈祷</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 基础样式 */
+        body {
+            background: linear-gradient(to right, #ffb6c1, #87cefa);
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #e91e63;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* 祷告输入区 */
+        #prayerText {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 2px solid #ff80ab;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            resize: vertical;
+        }
+
+        /* 按钮样式 */
+        #prayBtn {
+            background: #ff4081;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            display: block;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        #prayBtn:hover {
+            background: #f50057;
+            transform: scale(1.05);
+        }
+
+        /* 历史记录 */
+        .prayer-item {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .prayer-date {
+            color: #ff4081;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* 祝福动画 */
+        .blessing-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .blessing-gif {
+            width: 200px;
+            height: 200px;
+            margin: 15px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌸 纯光教会每日祈祷</h1>
+        
+        <div class="prayer-input">
+            <textarea id="prayerText" placeholder="写下你今日的祈祷（最多300字）..." maxlength="300"></textarea>
+            <button id="prayBtn">封印今日祈祷</button>
+        </div>
+
+        <div id="stats">
+            <p>连续祈祷天数：<span id="streakDays">0</span> 天</p>
+        </div>
+
+        <div class="history">
+            <h3>📜 祈祷历史</h3>
+            <div id="prayerList"></div>
+        </div>
+    </div>
+
+    <!-- 祝福动画容器 -->
+    <div class="blessing-container" id="blessingContainer">
+        <p id="blessingText"></p>
+        <img class="blessing-gif" id="blessingGif" alt="赐福动画">
+    </div>
+
+    <script>
+        // 祝福配置
+        const BLESSINGS = {
+            3: {
+                text: "✨ 小樱的祝福：三日的坚持已点亮「灯」牌！",
+                gif: "https://example.com/sakura3.gif"
+            },
+            7: {
+                text: "🎥 知世赐福：七日的虔诚召唤「翔」牌降临！",
+                gif: "https://example.com/sakura7.gif"
+            },
+            15: {
+                text: "🌙 审判者月认证：半月成就解锁「镜」牌真谛！",
+                gif: "https://example.com/sakura15.gif"
+            },
+            30: {
+                text: "🔮 库洛里多传承：满月轮回获得「光」牌永恒！",
+                gif: "https://example.com/sakura30.gif"
+            }
+        };
+
+        // 初始化数据
+        let prayData = JSON.parse(localStorage.getItem('prayData')) || {
+            streak: 0,
+            lastDate: '',
+            prayers: []
+        };
+
+        // 页面元素
+        const elements = {
+            prayerText: document.getElementById('prayerText'),
+            prayBtn: document.getElementById('prayBtn'),
+            streakDays: document.getElementById('streakDays'),
+            prayerList: document.getElementById('prayerList'),
+            blessingContainer: document.getElementById('blessingContainer'),
+            blessingText: document.getElementById('blessingText'),
+            blessingGif: document.getElementById('blessingGif')
+        };
+
+        // 初始化页面
+        function initPage() {
+            elements.streakDays.textContent = prayData.streak;
+            updatePrayerList();
+        }
+
+        // 保存祈祷记录
+        function savePrayer() {
+            const today = new Date().toLocaleDateString();
+            const prayerText = elements.prayerText.value.trim();
+
+            if (!prayerText) {
+                alert('请写下今日的祈祷内容！');
+                return;
+            }
+
+            if (today === prayData.lastDate) {
+                alert('今日已经进行过祈祷了！');
+                return;
+            }
+
+            // 更新数据
+            prayData.streak++;
+            prayData.lastDate = today;
+            prayData.prayers.unshift({
+                date: today,
+                text: prayerText
+            });
+
+            // 保持最多30条记录
+            if (prayData.prayers.length > 30) {
+                prayData.prayers.pop();
+            }
+
+            // 保存到本地存储
+            localStorage.setItem('prayData', JSON.stringify(prayData));
+            
+            // 更新界面
+            elements.streakDays.textContent = prayData.streak;
+            elements.prayerText.value = '';
+            updatePrayerList();
+            showBlessing();
+        }
+
+        // 显示祝福动画
+        function showBlessing() {
+            const blessing = BLESSINGS[prayData.streak];
+            if (!blessing) return;
+
+            elements.blessingText.textContent = blessing.text;
+            elements.blessingGif.src = blessing.gif;
+            
+            elements.blessingContainer.style.display = 'block';
+            setTimeout(() => {
+                elements.blessingContainer.style.display = 'none';
+            }, 3000);
+        }
+
+        // 更新历史记录
+        function updatePrayerList() {
+            elements.prayerList.innerHTML = prayData.prayers
+                .map(prayer => `
+                    <div class="prayer-item">
+                        <div class="prayer-date">${prayer.date}</div>
+                        <div class="prayer-text">${prayer.text}</div>
+                    </div>
+                `)
+                .join('');
+        }
+
+        // 事件监听
+        elements.prayBtn.addEventListener('click', savePrayer);
+
+        // 初始化
+        window.addEventListener('load', initPage);
+    </script>
+</body>
+</html>
